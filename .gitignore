@@ -1,3 +1,8 @@
+weights_conversion/cache_*
+weights_conversion/out_*
+weights_conversion/temp_*
+my_long_corpus_mistral
+
 __pycache__
 *.so
 build
