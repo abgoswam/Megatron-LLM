@@ -21,6 +21,7 @@ DISTRIBUTED_ARGS="--nproc_per_node 4 --nnodes 1 --node_rank 0 --master_addr loca
 # 	--use_checkpoint_args \
 # 	$COMMON_ARGS $LOG_ARGS $TRAIN_ARGS $LLAMA_ARGS
 
+# https://github.com/epfLLM/Megatron-LLM/issues/70
 COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_new_tokens --layernorm_epsilon 1e-5"
 
