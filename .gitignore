@@ -2,6 +2,8 @@ weights_conversion/cache_*
 weights_conversion/out_*
 weights_conversion/temp_*
 my_long_corpus_mistral
+my_long_corpus_llama2
+output_*.log
 
 __pycache__
 *.so
