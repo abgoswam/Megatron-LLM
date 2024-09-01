@@ -1,6 +1,6 @@
 LOG_ARGS="--log_interval 1 --save_interval 100 --eval_interval 50"
 TRAIN_ARGS="--train_iters 500 --lr_decay_style cosine --lr_warmup_iters 50 --lr 3e-4 --min_lr 1e-6"
-DISTRIBUTED_ARGS="--nproc_per_node 4 --nnodes 1 --node_rank 0 --master_addr localhost --master_port 8000"
+DISTRIBUTED_ARGS="--nproc_per_node 8 --nnodes 1 --node_rank 0 --master_addr localhost --master_port 8000"
 
 # torchrun $DISTRIBUTED_ARGS finetune.py \
 # 	--tensor_model_parallel_size 2 \
