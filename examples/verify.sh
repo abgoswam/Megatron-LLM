@@ -19,35 +19,40 @@ if [[ $MODEL = falcon ]]; then
 	TOKENIZER=FalconTokenizer
 	EXTRA_ARGS=""
 elif [[ $MODEL = llama ]] || [[ $MODEL = llama2 ]]; then
-	DATA_PATH=/pure-mlo-scratch/alhernan/data/wikitext-llama-32000/wiki-train_text_document
+	DATA_PATH=./my_long_corpus_llama2/my_long_corpus_128_llama2_text_document
 	TOKENIZER=SentencePieceTokenizer
-	EXTRA_ARGS="--vocab_file=/pure-mlo-scratch/llama/tokenizer.model --no_new_tokens --use_rms_norm
-	            --glu_activation swiglu --no_tie_embed_logits"
+	EXTRA_ARGS="--vocab_file=./weights_conversion/out_llama2_7b/tokenizer.model --no_new_tokens --use_rms_norm --glu_activation swiglu --no_tie_embed_logits"
 	if [[ $MODEL = llama ]]; then
 		CACHE=/pure-mlo-scratch/llama/converted_HF_${SIZE}B/
 		EXTRA_ARGS="$EXTRA_ARGS --layernorm_epsilon 1e-6"
 	else
-		CACHE=/pure-mlo-scratch/alhernan/llama2/llama-2-${SIZE}b/
+		CACHE=./weights_conversion/cache_llama2_${SIZE}b/
 		EXTRA_ARGS="$EXTRA_ARGS --layernorm_epsilon 1e-5"
 	fi
+elif [[ $MODEL = mistral ]]; then
+	DATA_PATH=./my_long_corpus_mistral/my_long_corpus_128_mistral_text_document
+	TOKENIZER=SentencePieceTokenizer
+	EXTRA_ARGS="--vocab_file=./weights_conversion/out_mistral_7b/tokenizer.model --no_new_tokens --use_rms_norm --glu_activation swiglu --no_tie_embed_logits"
+	CACHE=./weights_conversion/cache_mistral_${SIZE}b/
+	EXTRA_ARGS="$EXTRA_ARGS --layernorm_epsilon 1e-5"
 else
 	echo "Model should be either llama, llama2  or falcon, not $MODEL"
 	exit 1
 fi
-COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_dropout_fusion
-             --no_bias_gelu_fusion --use_flash_attn"
 
+COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_dropout_fusion --no_bias_gelu_fusion --use_flash_attn"
 
 # finally call the script
 DISTRIBUTED_ARGS="--nproc_per_node 1 --nnodes 1 --node_rank 0 --master_addr localhost --master_port 8000"
 torchrun $DISTRIBUTED_ARGS verify_correctness.py \
 	--model_name $MODEL \
-       --load /pure-mlo-scratch/alhernan/megatron-data/checkpoints/${MODEL}-${SIZE}b/ \
-       --data_path $DATA_PATH \
-       --huggingface_cache $CACHE \
-       --huggingface_device "cuda:1" \
-       --tokenizer_type $TOKENIZER \
-       --model_size $SIZE \
-       --bf16 \
-       $COMMON_ARGS \
-       $EXTRA_ARGS
+	--load ./weights_conversion/out_${MODEL}_${SIZE}b/ \
+	--data_path $DATA_PATH \
+	--huggingface_cache $CACHE \
+	--huggingface_device "cuda:3" \
+	--tokenizer_type $TOKENIZER \
+	--model_size $SIZE \
+	--bf16 \
+	--split 100,0,0 \
+	$COMMON_ARGS \
+	$EXTRA_ARGS
