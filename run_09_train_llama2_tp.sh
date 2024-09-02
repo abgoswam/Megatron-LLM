@@ -4,7 +4,7 @@ set -u
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
 TP=${1}
-GBZ=32
+GBZ=4
 GPUS_PER_NODE=8
 
 # Your script continues here

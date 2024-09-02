@@ -4,7 +4,7 @@ set -u
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
 TP=${1}
-GBZ=32
+GBZ=4
 GPUS_PER_NODE=8
 
 # Your script continues here
@@ -22,7 +22,7 @@ COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_new_tokens --layernorm_epsilon 1e-5"
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
-	--load ./weights_conversion/out_mistral_7b${TP}/ \
+	--load ./weights_conversion/out_mistral_7b_tp${TP}/ \
 	--save ./weights_conversion/out_mistral_7b_save/ \
 	--tensorboard_dir ./weights_conversion/out_mistral_7b_save/tensorboard/ \
 	--data_path ./my_long_corpus_mistral/my_long_corpus_4096_mistral_text_document \
@@ -36,4 +36,5 @@ torchrun $DISTRIBUTED_ARGS finetune.py \
 	--sequence_parallel \
 	--recompute_granularity selective \
 	--use_checkpoint_args \
+	--split 950,50,0 \
 	$COMMON_ARGS $LOG_ARGS $TRAIN_ARGS $LLAMA_ARGS

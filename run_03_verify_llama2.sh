@@ -12,6 +12,7 @@ torchrun $DISTRIBUTED_ARGS verify_correctness.py \
 	--vocab_file=./weights_conversion/out_llama2_7b/tokenizer.model \
 	--huggingface_cache=./weights_conversion/cache_llama2_7b/ \
 	--huggingface_device=cuda:1 \
+	--split 950,50,0 \
 	$COMMON_ARGS $LLAMA_ARGS 
 
 # torchrun $DISTRIBUTED_ARGS verify_correctness.py \
