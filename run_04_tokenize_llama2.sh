@@ -29,7 +29,7 @@ token_count=${1}
 # token_count=524288
 # token_count=1048576
 
-# bash run_02_tokenize.sh 262144 && bash run_02_tokenize.sh 524288 && bash run_02_tokenize.sh 1048576
+# bash run_04_tokenize_llama2.sh 8192  && bash run_04_tokenize_llama2.sh 16384
 
 # https://epfllm.github.io/Megatron-LLM/guide/tokenization.html
 python tools/preprocess_data.py \
