@@ -1,6 +1,4 @@
-weights_conversion/cache_*
-weights_conversion/out_*
-weights_conversion/temp_*
+weights_conversion
 my_long_corpus_mistral
 my_long_corpus_llama2
 output_*.log
