@@ -12,7 +12,7 @@ GPUS_PER_NODE=8
 # Your script continues here
 echo "TP: $TP, GBZ: $GBZ"
 
-LOG_ARGS="--log_interval 1 --save_interval 100 --eval_interval 50"
+LOG_ARGS="--log_interval 1 --save_interval 10 --eval_interval 50"
 TRAIN_ARGS="--train_iters 500 --lr_decay_style cosine --lr_warmup_iters 50 --lr 3e-4 --min_lr 1e-6"
 DISTRIBUTED_ARGS="--nproc_per_node ${GPUS_PER_NODE} --nnodes 1 --node_rank 0 --master_addr localhost --master_port 8000"
 
