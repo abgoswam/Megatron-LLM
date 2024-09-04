@@ -13,17 +13,8 @@ from matplotlib.colors import LinearSegmentedColormap
 import seaborn as sns
 import time
 
-local_rank = int(os.getenv('LOCAL_RANK', '0'))
-world_size = int(os.getenv('WORLD_SIZE', '1'))
-
 if not torch.cuda.is_available():
     raise ValueError("This script requires a GPU to run.")
-
-gpu_device = torch.device(f'cuda:{local_rank}')
-
-def print_once(*args, **kwargs):
-    if local_rank == 0:
-        print(*args, **kwargs)
 
 def generate_prompt_landmark(max_tokens, seed, prefix_fraction): #(n_garbage, seed, n_garbage_prefix):
     """Generates a text file and inserts an passkey at a random position."""
@@ -64,7 +55,7 @@ def extract_int(response):
 
 
 def model_inference(model, tokenizer, prompt_text):
-    inputs = tokenizer(prompt_text, return_tensors="pt").to(gpu_device)
+    inputs = tokenizer(prompt_text, return_tensors="pt").to("cuda")
     outputs = model.generate(**inputs, max_new_tokens=20)
     prompt_text_token_len = inputs['input_ids'].shape[1]
     generated_text = tokenizer.decode(outputs[0][prompt_text_token_len:], skip_special_tokens=True)
@@ -117,8 +108,9 @@ def estimate_passkey_retrieval_accuracy(model, tokenizer, trials, context_size):
         accuracy = correct_cnt/trials
         avg_tokens = total_tokens//trials if avg_tokens is None else avg_tokens
         depth = prefix_numerator/10.0
-        print_once(f"token length {avg_tokens}, depth {depth}, accuracy {accuracy}")
+        print(f"token length {avg_tokens}, depth {depth}, accuracy {accuracy}")
         results.append({"Context Length": avg_tokens, "Document Depth": round(depth*100, -1), "Score": correct_cnt})
+        
     total_correct = [result["Score"] for result in results]
     length_accu = []
     length_accu.append({"Context Length": context_size, "Accuracy": float(sum(total_correct))/(len(results)*trials)})
@@ -196,19 +188,22 @@ def main():
     # ds_engine = deepspeed.init_inference(model, tensor_parallel={"tp_size": world_size}, dtype=torch_dtype, replace_with_kernel_inject=False) #todo: would be nice to have replace_with_kernel_inject=True but it gives cuda compilation errors
     # model = ds_engine.module
 
+    # Move the model to GPUs (if not automatically done)
+    model = model.to("cuda")
+
     tokenizer = AutoTokenizer.from_pretrained(checkpoint, trust_remote_code=True, padding_side="right")
     if tokenizer.pad_token is None and tokenizer.eos_token is not None:
         tokenizer.pad_token = tokenizer.eos_token
-    print_once(f"tokenizer.pad_token: {tokenizer.pad_token}")
+    print(f"tokenizer.pad_token: {tokenizer.pad_token}")
     if model.config.pad_token_id is None and model.config.eos_token_id is not None:
         model.config.pad_token_id = model.config.eos_token_id
-    print_once(f"model.config.pad_token_id: {model.config.pad_token_id}")
+    print(f"model.config.pad_token_id: {model.config.pad_token_id}")
     if model.generation_config.pad_token_id is None and model.generation_config.eos_token_id is not None:
         model.generation_config.pad_token_id = model.generation_config.eos_token_id
 
-    inputs = tokenizer("Fun fact:", return_tensors="pt").to(gpu_device)
+    inputs = tokenizer("Fun fact:", return_tensors="pt").to("cuda")
     outputs = model.generate(**inputs, max_new_tokens=20)
-    print_once(tokenizer.decode(outputs[0], skip_special_tokens=True))
+    print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
     result_list = list()
     accu_list = list()
@@ -242,5 +237,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print(f"local_rank: {local_rank}, world_size: {world_size}")
     main()

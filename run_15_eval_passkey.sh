@@ -9,8 +9,16 @@
     # --model_path ${{inputs.model_path}} \
     # --output_dir ${{outputs.output_dir}}
 
+# llama2
+# python run_15_eval_passkey.py \
+#     --max_length 131072 \
+#     --max_position_embeddings 131072 \
+#     --model_path meta-llama/Llama-2-7b-hf \
+#     --output_dir ./my_long_context_eval_passkey_mistral
+
+# mistral
 python run_15_eval_passkey.py \
     --max_length 131072 \
     --max_position_embeddings 131072 \
-    --model_path meta-llama/Llama-2-7b-hf \
-    --output_dir ./my_long_context_eval_passkey
+    --model_path mistralai/Mistral-7B-v0.1 \
+    --output_dir ./my_long_context_eval_passkey_mistral
