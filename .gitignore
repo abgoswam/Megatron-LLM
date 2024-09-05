@@ -5,7 +5,7 @@ my_long_context_eval_passkey_llama2/
 my_long_context_eval_passkey_mistral/
 output_*.log
 drugsCom*
-
+my_red_pajama
 
 __pycache__
 *.so
