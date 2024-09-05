@@ -4,7 +4,7 @@ my_long_corpus_llama2
 my_long_context_eval_passkey_llama2/
 my_long_context_eval_passkey_mistral/
 output_*.log
-
+drugsCom*
 
 
 __pycache__
