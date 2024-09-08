@@ -1,11 +1,5 @@
-weights_conversion
-my_long_corpus_mistral
-my_long_corpus_llama2
-my_long_context_eval_passkey_llama2/
-my_long_context_eval_passkey_mistral/
-output_*.log
-drugsCom*
-my_red_pajama
+my_repro_0908/my_repro_ckpts
+my_repro_0908/my_long_corpus_repro_data
 
 __pycache__
 *.so
