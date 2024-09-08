@@ -17,4 +17,5 @@ python ./weights_conversion/hf_to_megatron.py \
     --size 7 \
     --out ./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b \
     --model-path mistralai/Mistral-7B-v0.1 \
+    --cache-dir ./my_repro_0908/my_repro_ckpts/repro_cache_mistral_7b \
     mistral

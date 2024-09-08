@@ -21,7 +21,7 @@ token_count=8192
 python tools/preprocess_data.py \
         --input=./my_repro_0908/my_long_corpus_repro_data/my_long_corpus_${token_count}.jsonl \
         --output_prefix=my_long_corpus_${token_count}_mistral \
-        --vocab_file=./weights_conversion/out_mistral_7b/tokenizer.model \
+        --vocab_file=./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b/tokenizer.model \
         --tokenizer_type=SentencePieceTokenizer \
         --workers=2 \
         --dataset_impl=mmap \
