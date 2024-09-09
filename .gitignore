@@ -1,5 +1,7 @@
 my_repro_0908/my_repro_ckpts
 my_repro_0908/my_long_corpus_repro_data
+my_repro_0908/my_red_pajama_10k_mistral
+output_train_mistral_tp8_4_red_pajama.log
 
 __pycache__
 *.so
