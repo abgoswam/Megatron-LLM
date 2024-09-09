@@ -1,5 +1,6 @@
 tp=8
 
+# https://github.com/epfLLM/Megatron-LLM/issues/63
 python tools/checkpoint_util.py \
 	--target_tensor_parallel_size ${tp} \
 	--target_pipeline_parallel_size 1 \
