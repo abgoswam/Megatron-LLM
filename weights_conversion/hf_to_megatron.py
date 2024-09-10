@@ -51,7 +51,7 @@ from argparse import ArgumentParser, Namespace
 
 import torch
 from tqdm.auto import trange
-from transformers import AutoModelForCausalLM, LlamaTokenizer
+from transformers import AutoModelForCausalLM, LlamaTokenizer, AutoTokenizer
 
 from utils.permute_qkv import permute_qkv
 from utils.merge_llama import merge_llama
@@ -496,6 +496,21 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
                               "tokenizer, using default tokenizer instead")
         if tokenizer is None:
             tokenizer = LlamaTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1",
+                                                       cache_dir=cache_dir)
+        token_path = out/"tokenizer.model"
+        vocab_file = tokenizer.vocab_file
+        shutil.copy(vocab_file, token_path)
+        print("Saved tokenizer.model in", token_path)
+    elif model_name == "phi3":
+        tokenizer = None
+        if model_path is not None:
+            try:
+                tokenizer = AutoTokenizer.from_pretrained(model_path, cache_dir=cache_dir)
+            except OSError:
+                warnings.warn(f"Model path {model_path} does not have a "
+                              "tokenizer, using default tokenizer instead")
+        if tokenizer is None:
+            tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",
                                                        cache_dir=cache_dir)
         token_path = out/"tokenizer.model"
         vocab_file = tokenizer.vocab_file
