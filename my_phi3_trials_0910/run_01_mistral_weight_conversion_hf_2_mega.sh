@@ -1,0 +1,21 @@
+# python weights_conversion/hf_to_megatron.py \
+#     llama2 \
+#     --size=7 \
+# 	--out=/path/to/megatron/weights/ \
+#     --cache-dir=/path/to/llama-2-7b/
+
+# # llama2
+# python hf_to_megatron.py \
+#     --size 7 \
+#     --out temp_out_llama2_7b \
+#     --model-path meta-llama/Llama-2-7b-hf \
+#     --cache-dir temp_cache_llama2_7b \
+#     llama2
+
+# mistral
+python ./weights_conversion/hf_to_megatron.py \
+    --size 7 \
+    --out ./my_phi3_trials_0910/ckpts/out_mistral_7b \
+    --model-path mistralai/Mistral-7B-v0.1 \
+    --cache-dir ./my_phi3_trials_0910/ckpts/cache_mistral_7b \
+    mistral

@@ -1,3 +1,10 @@
+# import debugpy
+# debugpy.listen(5678)  # 5678 is port
+# print("Waiting for debugger attach")
+# debugpy.wait_for_client()
+# debugpy.breakpoint()
+# print('break on this line')
+
 """
 Convert weights from models in other formats (primairly huggingface) to megatron checkpoints.
 
@@ -256,6 +263,51 @@ def mistral_to_megatron(
             "lm_head": lm_head}
 
 
+def phi3_to_megatron(
+    weights: dict,
+    size: int
+) -> dict:
+    assert size == 3  # taking floor of 3.8
+
+    # config
+    if size == 3:
+        n_layer = 32
+        hidden = 3072  # "hidden_size": 3072, in https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json
+        n_heads = 32
+        n_kv_heads = 32  # "num_key_value_heads": 32, in https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json
+    
+    n_hidden_per_head = hidden // n_heads
+
+    # weights independent of layers
+    embedding = {"word_embeddings.weight": weights["model.embed_tokens.weight"]}
+    transformer = {"final_layernorm.weight": weights["model.norm.weight"]}
+    lm_head = weights["lm_head.weight"]
+
+    # get all the other weights
+    for layer in trange(n_layer, desc="Converting weights"):
+        prefix = f"layers.{layer}"
+        hf_prefix = f"model.{prefix}"
+        # identical weights
+        transformer[f"{prefix}.attention.dense.weight"] = \
+            weights[f"{hf_prefix}.self_attn.o_proj.weight"]
+        transformer[f"{prefix}.post_attention_layernorm.weight"] = \
+            weights[f"{hf_prefix}.post_attention_layernorm.weight"]
+        transformer[f"{prefix}.input_layernorm.weight"] = \
+            weights[f"{hf_prefix}.input_layernorm.weight"]
+        transformer[f"{prefix}.mlp.dense_4h_to_h.weight"] = \
+            weights[f"{hf_prefix}.mlp.down_proj.weight"]
+        # concatenate up, gate mlp weights
+        transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = \
+            weights[f"{hf_prefix}.mlp.gate_up_proj.weight"]
+        # finally, qkv 
+        transformer[f"{prefix}.attention.query_key_value.weight"] = \
+            weights[f"{hf_prefix}.self_attn.qkv_proj.weight"]
+
+    return {"embedding": embedding, "transformer": transformer,
+            "lm_head": lm_head}
+
+
+
 def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
          cache_dir: Optional[Path] = None, model_path: Optional[str] = None):
     if out is None:
@@ -278,6 +330,14 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
                                                     trust_remote_code=True,
                                                     cache_dir=cache_dir)
         hf_weights = model.state_dict()
+    elif model_name == "phi3":
+        print("Fetching weights from huggingface")
+        if model_path is None:
+            model_path = "microsoft/Phi-3-mini-4k-instruct"
+        model = AutoModelForCausalLM.from_pretrained(model_path,
+                                                    trust_remote_code=True,
+                                                    cache_dir=cache_dir)
+        hf_weights = model.state_dict()
     else:
         print("Getting llama...")
         version = 2 if "2" in model_name else 1
@@ -289,6 +349,8 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
         megatron_weights = falcon_to_megatron(hf_weights, size)
     elif model_name == "mistral":
         megatron_weights = mistral_to_megatron(hf_weights, size)
+    elif model_name == "phi3":
+        megatron_weights = phi3_to_megatron(hf_weights, size)
     else:
         megatron_weights = llama_to_megatron(hf_weights, size, llama_source,
                                              version=1 if model_name == "llama" else 2)
@@ -330,6 +392,31 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
             "layernorm_epsilon": 1e-5,
             "rope_theta": 10000.0,
             "sliding_window_size": 4096,
+        }
+    elif model_name == "phi3":
+        assert size == 3
+        # microsoft/Phi-3-mini-4k-instruct mostly uses the same args as mistral-7b
+        # https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json
+        # https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json
+        args = {
+            "num_layers": 32, # =============================================== "num_hidden_layers": 32, =======  vs mistral (32)    == vs llama2 (32)
+            "hidden_size": 3072, # except this. =============================== "hidden_size": 3072,============  vs mistral (4096)  == vs llama2 (4096)
+            "num_attention_heads": 32, # ====================================== "num_attention_heads": 32, =====  vs mistral (32)    == vs llama2 (32)
+            "num_attention_heads_kv": 32,  # except this - GroupedAttention.=== "num_key_value_heads": 32, ====== vs mistral (8)  ===== vs llama2 (32)
+            "ffn_hidden_size": 8192,  # except this =========================== "intermediate_size": 8192, ====== vs mistral (14336) == vs llama2 (8192)
+            "parallel_attn": False,
+            "make_vocab_size_divisible_by": 128,
+            "glu_activation": "silu",  # ====================================== "hidden_act": "silu", =========== vs mistral (silu) ==  vs llama2 (silu)
+            "padded_vocab_size": 32064, # except this ========================= "vocab_size": 32064 ============= vs mistral (32000) =  vs llama2 (32000)
+            "use_rms_norm": True, # =========================================== "rms_norm_eps": 1e-05, ========== vs mistral (1e-05) =  vs llama2 (1e-05)
+            "tie_embed_logits": False, # ====================================== "tie_word_embeddings": false,
+            "tokenizer_type": "SentencePieceTokenizer",
+            
+            "max_position_embeddings": 4096, # except this =================== "max_position_embeddings": 4096, == vs mistral (32768) == vs llama2 (4096)
+            "seq_length": 4096,
+            "layernorm_epsilon": 1e-5, # ===================================== "rms_norm_eps": 1e-05, ============ vs mistral (1e-05) == vs llama2 (1e-05)
+            "rope_theta": 10000.0, # ========================================= "rope_theta": 10000.0, ============ vs mistral (10000.0) =vs llama2 (no rope_theta)
+            "sliding_window_size": 2047, # except this ======================= "sliding_window": 2047, =========== vs mistral (4096) ====vs llama2 (no SW)
         }
     else:  # llama1, llama2, codellama
         args = {"num_layers": llama_s2layer[size],
@@ -421,8 +508,8 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
 if __name__ == "__main__":
     parser = ArgumentParser(description="Convert Huggingface llama or falcon weights to "
                                         "megatron-compatible weights")
-    parser.add_argument("model", choices={"falcon", "llama", "llama2", "codellama", "mistral"})
-    parser.add_argument("--size", default=7, choices={7, 13, 30, 34, 40, 65, 70}, type=int,
+    parser.add_argument("model", choices={"falcon", "llama", "llama2", "codellama", "mistral", "phi3"})
+    parser.add_argument("--size", default=7, choices={3, 7, 13, 30, 34, 40, 65, 70}, type=int,
                         help="The size of the model")
     parser.add_argument("--out", type=Path,
                         help="Directory to store the megatron weights (as checkpoint)")
@@ -443,6 +530,8 @@ if __name__ == "__main__":
         assert args.size in {7, 13, 34}
     elif args.model == "mistral":
         assert args.size in {7}
+    elif args.model == "phi3":
+        assert args.size in {3}
     else:
         assert args.size in {7, 13, 70}
 
