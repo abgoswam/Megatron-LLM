@@ -10,6 +10,7 @@ torchrun $DISTRIBUTED_ARGS verify_correctness.py \
 	--data_path=./my_long_corpus_4_phi3_trials_0910/my_long_corpus_4_phi3_8192_text_document \
 	--tokenizer_type=SentencePieceTokenizer \
 	--vocab_file=./my_phi3_trials_0910/ckpts/Phi-3-mini-4k-instruct/tokenizer.model \
+	--vocab_extra_ids=64 \
 	--huggingface_cache=./my_phi3_trials_0910/ckpts/cache_phi3/ \
 	--huggingface_device=cuda:1 \
 	--split 95,5,0 \
