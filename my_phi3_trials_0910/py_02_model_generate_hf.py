@@ -4,10 +4,11 @@ import torch
 # Load the tokenizer and model from Hugging Face
 # model_name = "meta-llama/Llama-2-7b-hf"  # Change this to your specific LLaMA2 model
 
-model_name_or_path = "microsoft/Phi-3-mini-4k-instruct"
+# model_name_or_path = "microsoft/Phi-3-mini-4k-instruct"
 # model_name_or_path = "mistralai/Mistral-7B-v0.1"
 # model_name_or_path = "/mnt/synthdatastore/agoswami/models_04_postlaborday/out_mistral_7b_hf_red_pajama"
 # model_name_or_path = "./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b_hf"
+model_name_or_path = "/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_phi3_hf"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
 
