@@ -510,8 +510,8 @@ def write_tokenizer(args: Namespace):
     # add default args for megatron tokenizer
     args.rank = 0
     args.vocab_extra_ids = 0
-    args.new_tokens = True
-    args.make_vocab_size_divisible_by = 128
+    args.new_tokens = False
+    args.make_vocab_size_divisible_by = 64
     args.tensor_model_parallel_size = 1
     mt_tokenizer = build_tokenizer(args)
 
