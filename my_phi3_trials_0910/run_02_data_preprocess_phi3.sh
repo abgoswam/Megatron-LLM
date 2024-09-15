@@ -15,7 +15,7 @@
 #         --workers=2 \
 #         --chunk_size=32
 
-token_count=8192
+token_count=4096
 
 # https://epfllm.github.io/Megatron-LLM/guide/tokenization.html
 python tools/preprocess_data.py \
