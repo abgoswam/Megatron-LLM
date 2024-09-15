@@ -6,7 +6,7 @@ set -u
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-S=${1}
+S=8192
 TP=8
 GBZ=4
 GPUS_PER_NODE=8
@@ -27,13 +27,13 @@ COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_new_tokens --layernorm_epsilon 1e-5"
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
-	--load ./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b_tp${TP}/ \
-	--save ./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b_tp${TP}_save/ \
-	--tensorboard_dir ./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b_tp${TP}_save/tensorboard/ \
-	--data_path ./my_repro_0908/my_long_corpus_repro_data/my_long_corpus_${S}_mistral_text_document \
-	--model_name mistral \
+	--load ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}/ \
+	--save ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}_save/ \
+	--tensorboard_dir ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}_save/tensorboard/ \
+	--data_path ./my_long_corpus_4_phi3_trials_0910/my_long_corpus_4_phi3_${S}_text_document \
+	--model_name phi3 \
 	--tokenizer_type SentencePieceTokenizer \
-	--vocab_file=./my_repro_0908/my_repro_ckpts/repro_out_mistral_7b/tokenizer.model \
+	--vocab_file=./my_phi3_trials_0910/ckpts/Phi-3-mini-4k-instruct/tokenizer.model \
 	--bf16 \
 	--use_flash_attn \
 	--micro_batch_size 1 \
@@ -41,5 +41,4 @@ torchrun $DISTRIBUTED_ARGS finetune.py \
 	--sequence_parallel \
 	--recompute_granularity selective \
 	--use_checkpoint_args \
-	--split 970,30,0 \
 	$COMMON_ARGS $LOG_ARGS $TRAIN_ARGS $LLAMA_ARGS

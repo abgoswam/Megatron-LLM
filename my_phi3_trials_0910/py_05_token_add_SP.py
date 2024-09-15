@@ -10,7 +10,7 @@ from megatron.tokenizer.tokenizer import _SentencePieceTokenizer
 model_file = "./my_phi3_trials_0910/ckpts/Phi-3-mini-4k-instruct/tokenizer.model"  # Replace with the path to your SentencePiece model file.
 
 # Instantiate the tokenizer with vocab_extra_ids set to 64.
-tokenizer = _SentencePieceTokenizer(model_file=model_file, vocab_extra_ids=64, new_tokens=False)
+tokenizer = _SentencePieceTokenizer(model_file=model_file, vocab_extra_ids=64, vocab_extra_ids_list="[formula],[/formula]", new_tokens=False)
 
 # Verify the vocabulary size.
 print(f"Vocabulary size: {tokenizer.vocab_size}")  

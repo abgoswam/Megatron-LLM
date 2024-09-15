@@ -7,5 +7,5 @@ python tools/checkpoint_util.py \
 	--load_dir ./my_phi3_trials_0910/ckpts/out_phi3/ \
 	--save_dir ./my_phi3_trials_0910/ckpts/out_phi3_tp${tp}/ \
 	--model_type phi3 \
-	--true_vocab_size 32000 \
+	--true_vocab_size 32064 \
 	--bf16
