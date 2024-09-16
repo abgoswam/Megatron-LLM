@@ -6,7 +6,7 @@ set -u
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-S=8192
+S=${1}
 TP=8
 GBZ=4
 GPUS_PER_NODE=8
@@ -28,7 +28,7 @@ LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_ne
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
 	--load ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}/ \
-	--save ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}_save/ \
+	--save ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}_s${S}_save/ \
 	--tensorboard_dir ./my_phi3_trials_0910/ckpts/out_phi3_tp${TP}_save/tensorboard/ \
 	--data_path ./my_long_corpus_4_phi3_trials_0910/my_long_corpus_4_phi3_${S}_text_document \
 	--model_name phi3 \
