@@ -5,6 +5,7 @@ my_repro_0908/my_red_pajama_10k_mistral
 my_phi3_trials_0910/ckpts
 my_long_corpus_4_mistral_trials_0910
 my_long_corpus_4_phi3_trials_0910
+my_red_pajama_4_phi31_trials_0916
 
 __pycache__
 *.so
