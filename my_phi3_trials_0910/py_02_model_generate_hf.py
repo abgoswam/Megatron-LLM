@@ -22,6 +22,7 @@ model = AutoModelForCausalLM.from_pretrained(model_name_or_path, torch_dtype=tor
 model = model.to("cuda")
 
 input_texts = [
+    "tell me a fun fact",
     "Swiss-born novelist and poet (1887–1961)",
     "Swiss-born novelist and poet (1887–1961)  was a member of the Royal",
     "Swiss-born novelist and poet (1887–1961)  was a member of the Royal Navy"
