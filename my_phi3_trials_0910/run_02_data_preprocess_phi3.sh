@@ -1,3 +1,9 @@
+#!/bin/bash
+
+set -x #This command turns on debugging by making the shell print each command before executing it.
+set -e #This command tells the shell to exit immediately if any command it runs exits with a non-zero status (which usually indicates an error)
+set -u
+
 # python tools/preprocess_data.py --input=/path/to/raw.jsonl \
 # 	--output_prefix=/path/to/tokenized/starcoder \
 # 	--tokenizer_type=SentencePieceTokenizer \
@@ -15,7 +21,9 @@
 #         --workers=2 \
 #         --chunk_size=32
 
-token_count=4096
+# bash ./my_phi3_trials_0910/run_02_data_preprocess_phi3.sh 16384 && bash ./my_phi3_trials_0910/run_02_data_preprocess_phi3.sh 32768 && bash ./my_phi3_trials_0910/run_02_data_preprocess_phi3.sh 65536 && bash ./my_phi3_trials_0910/run_02_data_preprocess_phi3.sh 131072
+
+token_count=${1}
 
 # https://epfllm.github.io/Megatron-LLM/guide/tokenization.html
 python tools/preprocess_data.py \
