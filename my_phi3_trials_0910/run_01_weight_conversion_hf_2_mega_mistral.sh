@@ -15,7 +15,7 @@
 # mistral
 python ./weights_conversion/hf_to_megatron.py \
     --size 7 \
-    --out ./my_phi3_trials_0910/ckpts/out_mistral_7b \
+    --out /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_mistral_7b_orig \
     --model-path mistralai/Mistral-7B-v0.1 \
     --cache-dir ./my_phi3_trials_0910/ckpts/cache_mistral_7b \
     mistral

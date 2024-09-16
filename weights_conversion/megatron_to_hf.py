@@ -1,3 +1,10 @@
+# import debugpy
+# debugpy.listen(5678)  # 5678 is port
+# print("Waiting for debugger attach")
+# debugpy.wait_for_client()
+# debugpy.breakpoint()
+# print('break on this line')
+
 """
 Convert megatron checkpoints to huggingface weights.
 
@@ -602,11 +609,12 @@ def main():
             rope_theta=rope_theta,
         )
     elif args.model == "mistral":
+        print("Converting from megatron to Mistral..")
         write_mistral_model(
             model_path=args.output_dir,
             input_base_path=args.input_dir,
             num_output_shards=args.num_output_shards,
-            vocab_size=vocab_size,
+            # vocab_size=vocab_size,
         )
     elif args.model == "falcon":
         write_falcon_model(

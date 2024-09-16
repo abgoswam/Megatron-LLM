@@ -284,7 +284,7 @@ def phi3_to_megatron(
     lm_head = weights["lm_head.weight"]
 
     # get all the other weights
-    for layer in trange(n_layer, desc="Converting weights"):
+    for layer in trange(n_layer, desc="Converting weights for phi3"):
         prefix = f"layers.{layer}"
         hf_prefix = f"model.{prefix}"
         # identical weights
@@ -323,7 +323,7 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
                                                      cache_dir=cache_dir)
         hf_weights = model.state_dict()
     elif model_name == "mistral":
-        print("Fetching weights from huggingface")
+        print("Fetching weights from huggingface for mistral")
         if model_path is None:
             model_path = "mistralai/Mistral-7B-v0.1"
         model = AutoModelForCausalLM.from_pretrained(model_path,
@@ -331,7 +331,7 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
                                                     cache_dir=cache_dir)
         hf_weights = model.state_dict()
     elif model_name == "phi3":
-        print("Fetching weights from huggingface")
+        print("Fetching weights from huggingface for phi3")
         if model_path is None:
             model_path = "microsoft/Phi-3-mini-4k-instruct"
         model = AutoModelForCausalLM.from_pretrained(model_path,

@@ -10,6 +10,7 @@ print('\n'.join(sys.path))
 # checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_phi3/release/mp_rank_00/model_optim_rng.pt'
 # # checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_mistral_7b/release/mp_rank_00/model_optim_rng.pt'
 # checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_mistral_7b/release/mp_rank_00/model_optim_rng.pt'
+# checkpoint_path = '/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_mistral_7b_orig/release/mp_rank_00//model_optim_rng.pt'
 
 
 # # Load the checkpoint
@@ -30,8 +31,7 @@ print('\n'.join(sys.path))
 #     print(f"Layer: {name}, Size: {param.size()}")
 
 # ==================== resharded ckpt seem sto have a slightly different model architecture ===================
-# checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_phi3_reshard/iter_0000020/mp_rank_00/model_optim_rng.pt'
-checkpoint_path = '/mnt/synthdatastore/agoswami/models_04_postlaborday/out_phi31_red_pajama_ckpt1500_reshard/iter_0001500/mp_rank_00//model_optim_rng.pt'
+checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_phi3_reshard/iter_0000020/mp_rank_00/model_optim_rng.pt'
 
 # Load the checkpoint
 checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
