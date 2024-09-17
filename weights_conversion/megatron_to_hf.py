@@ -1,3 +1,10 @@
+# import debugpy
+# debugpy.listen(5678)  # 5678 is port
+# print("Waiting for debugger attach")
+# debugpy.wait_for_client()
+# debugpy.breakpoint()
+# print('break on this line')
+
 """
 Convert megatron checkpoints to huggingface weights.
 
@@ -32,7 +39,8 @@ sys.path.append(str(Path(__file__).parent.parent.absolute()))  # megatron is imp
 
 import torch
 from tqdm.auto import trange
-from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizerFast, FalconConfig, FalconForCausalLM, AutoTokenizer, MistralConfig, MistralForCausalLM
+from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizerFast, FalconConfig, FalconForCausalLM, AutoTokenizer, \
+    MistralConfig, MistralForCausalLM, Phi3Config, Phi3ForCausalLM
 
 from utils.permute_qkv import permute_qkv
 
@@ -329,6 +337,150 @@ def write_mistral_model(
     max_num_params_per_shard = param_count*2 // max(1,(num_output_shards-1))
     model.save_pretrained(model_path, max_shard_size=max_num_params_per_shard)
 
+def write_phi3_model(
+    model_path,
+    input_base_path,
+    num_output_shards: int=2,
+    norm_eps: float=1e-5,
+    rope_theta: float=10000.0,
+    vocab_size: int=None,
+):
+
+    # Preliminaries
+    print(f"Fetching all parameters from the checkpoint at {input_base_path}.")
+    os.makedirs(model_path, exist_ok=True)
+    with open(os.path.join(input_base_path, 'latest_checkpointed_iteration.txt')) as f:
+        iteration = f.read()
+    if iteration != "release":
+        iteration = f"iter_{int(iteration):07d}"
+    print(f"Fetching iteration {iteration}")
+
+    # Load weights
+    base_path = Path(input_base_path)/iteration
+    assert len(list(base_path.glob("mp_rank_*"))) == 1, "Unshard your model with checkpoint_util.py first!"
+    loaded = torch.load(base_path/"mp_rank_00"/"model_optim_rng.pt", map_location="cpu")
+    args = loaded['args']
+
+    loaded = loaded['model']['language_model']
+    if 'transformer' not in loaded:  # normalize key names
+        loaded["transformer"] = loaded.pop("encoder")
+        for key in list(loaded["transformer"].keys()):
+            loaded["transformer"][key.replace("self_attention", "attention")] = loaded["transformer"].pop(key)
+        loaded["embedding"]["word_embeddings.weight"] = loaded["embedding"].pop("word_embeddings")["weight"]
+        args.num_layers = args.encoder_num_layers
+
+    # Load arguments
+    n_layers = args.num_layers
+    n_heads = args.num_attention_heads
+    n_heads_kv = getattr(args, "num_attention_heads_kv", n_heads)
+    n_dense = args.ffn_hidden_size
+    n_hidden = args.hidden_size
+    hidden_per_head = n_hidden // n_heads
+    intermediate_size = args.ffn_hidden_size
+    inv_freq = 1.0 / (rope_theta ** (torch.arange(0, hidden_per_head, 2).float() / hidden_per_head))
+
+    print('Phi3-Mistral-Megatron Loaded!')
+    param_count = 0
+    index_dict = {"weight_map": {}}
+        
+    # Start conversion
+    with TemporaryDirectory() as tmp_model_path:
+        print(f'Weighted Converting for {n_layers} layers...')
+        for layer_i in range(n_layers):
+            filename = f"pytorch_model-{layer_i + 1}-of-{n_layers + 1}.bin"
+
+            state_dict = {
+                f"model.layers.{layer_i}.self_attn.qkv_proj.weight": loaded["transformer"][f"layers.{layer_i}.attention.query_key_value.weight"],
+                f"model.layers.{layer_i}.self_attn.o_proj.weight": loaded["transformer"][f"layers.{layer_i}.attention.dense.weight"],
+                f"model.layers.{layer_i}.mlp.gate_up_proj.weight": loaded["transformer"][f"layers.{layer_i}.mlp.dense_h_to_4h.weight"],
+                f"model.layers.{layer_i}.mlp.down_proj.weight": loaded["transformer"][f"layers.{layer_i}.mlp.dense_4h_to_h.weight"],
+                f"model.layers.{layer_i}.input_layernorm.weight": loaded["transformer"][f"layers.{layer_i}.input_layernorm.weight"],
+                f"model.layers.{layer_i}.post_attention_layernorm.weight": loaded["transformer"][f"layers.{layer_i}.post_attention_layernorm.weight"],
+                f"model.layers.{layer_i}.self_attn.rotary_emb.inv_freq": inv_freq
+
+                # layer names in HF model
+                # model.layers.0.self_attn.qkv_proj.weight: shape=torch.Size([9216, 3072])
+                # model.layers.0.self_attn.o_proj.weight: shape=torch.Size([3072, 3072])
+                # model.layers.0.mlp.gate_up_proj.weight: shape=torch.Size([16384, 3072])
+                # model.layers.0.mlp.down_proj.weight: shape=torch.Size([3072, 8192])
+                # model.layers.0.input_layernorm.weight: shape=torch.Size([3072])
+                # model.layers.0.post_attention_layernorm.weight: shape=torch.Size([3072])
+
+                # layers in HF -> mega code 
+                # transformer[f"{prefix}.attention.query_key_value.weight"] = weights[f"{hf_prefix}.self_attn.qkv_proj.weight"]  #qkv
+                # transformer[f"{prefix}.attention.dense.weight"] = weights[f"{hf_prefix}.self_attn.o_proj.weight"]
+                # transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = weights[f"{hf_prefix}.mlp.gate_up_proj.weight"]
+                # transformer[f"{prefix}.mlp.dense_4h_to_h.weight"] = weights[f"{hf_prefix}.mlp.down_proj.weight"]
+                # transformer[f"{prefix}.input_layernorm.weight"] = weights[f"{hf_prefix}.input_layernorm.weight"]
+                # transformer[f"{prefix}.post_attention_layernorm.weight"] = weights[f"{hf_prefix}.post_attention_layernorm.weight"]
+            }
+
+            for k, v in state_dict.items():
+                index_dict["weight_map"][k] = filename
+                param_count += v.numel()
+            torch.save(state_dict, os.path.join(tmp_model_path, filename))
+            print(f'Sharded file saved to {filename}')
+
+        filename = f"pytorch_model-{n_layers + 1}-of-{n_layers + 1}.bin"
+        state_dict = {
+            "model.norm.weight": loaded["transformer"]['final_layernorm.weight'],
+            "lm_head.weight": loaded['lm_head'],
+            "model.embed_tokens.weight": loaded['embedding']["word_embeddings.weight"]
+        }
+
+        for k, v in state_dict.items():
+            index_dict["weight_map"][k] = filename
+            param_count += v.numel()
+        torch_dtype = state_dict["lm_head.weight"].dtype
+        torch.save(state_dict, os.path.join(tmp_model_path, filename))
+        print(f'Sharded file saved to {filename}')
+
+        # Write configs and save
+        index_dict["metadata"] = {"total_size": param_count * 2}
+        write_json(index_dict, os.path.join(tmp_model_path, "pytorch_model.bin.index.json"))
+
+        # load Phi3 config from huggingface
+        config = Phi3Config.from_pretrained(
+            "microsoft/Phi-3.5-mini-instruct"
+        )
+        # assert configuration matches
+        assert config.hidden_size == n_hidden
+        assert config.intermediate_size == intermediate_size
+        assert config.num_attention_heads == n_heads
+        assert config.num_hidden_layers == n_layers
+        assert config.rms_norm_eps == norm_eps
+        assert config.num_key_value_heads == n_heads_kv
+        # Set vocab size
+        config.vocab_size = args.padded_vocab_size
+        config.save_pretrained(tmp_model_path)
+
+        # Make space so we can load the model properly now.
+        del state_dict
+        del loaded
+        gc.collect()
+
+        if vocab_size is None:
+            vocab_size = args.padded_vocab_size
+        else:
+            print(f"Using vocab size {vocab_size} from tokenizer and not {args.padded_vocab_size} from args.")
+            # update config
+            config.vocab_size = vocab_size
+
+        print("Loading the checkpoint in a Phi3 model...")
+        model = Phi3ForCausalLM.from_pretrained(
+            tmp_model_path,
+            torch_dtype=torch_dtype
+        )
+        model.config.vocab_size = vocab_size
+        # resizes the embedding layer to the correct size
+        model.resize_token_embeddings(vocab_size)
+        # Avoid saving this as part of the config.
+        del model.config._name_or_path
+
+    print("Saving in the Transformers format.")
+    max_num_params_per_shard = param_count*2 // max(1,(num_output_shards-1))
+    model.save_pretrained(model_path, max_shard_size=max_num_params_per_shard)
+
 
 def write_falcon_model(
     model_path: str,
@@ -474,7 +626,7 @@ def write_falcon_model(
 
 
 def write_tokenizer(args: Namespace):
-    if args.model in {"llama", "llama2", "codellama", "mistral"}:
+    if args.model in {"llama", "llama2", "codellama", "mistral", "phi3"}:
         # mistral also use LlamaTokenizerFast
         args.tokenizer_type = "SentencePieceTokenizer"
         if args.vocab_file:
@@ -490,6 +642,8 @@ def write_tokenizer(args: Namespace):
                 hf_repo_name = "TheBloke/CodeLlama-13B-fp16"
             elif args.model == "mistral":
                 hf_repo_name = "mistralai/Mistral-7B-v0.1"
+            elif args.model == "phi3":
+                hf_repo_name = "microsoft/Phi-3.5-mini-instruct"
             else:
                 hf_repo_name = "meta-llama/Llama-2-7b-hf"
             try:  # try loading from huggingface
@@ -510,8 +664,8 @@ def write_tokenizer(args: Namespace):
     # add default args for megatron tokenizer
     args.rank = 0
     args.vocab_extra_ids = 0
-    args.new_tokens = True
-    args.make_vocab_size_divisible_by = 128
+    args.new_tokens = False
+    args.make_vocab_size_divisible_by = 64 # compatible with Phi3
     args.tensor_model_parallel_size = 1
     mt_tokenizer = build_tokenizer(args)
 
@@ -577,7 +731,7 @@ def main():
     parser.add_argument("--input_dir", help="Location of Megatron weights",
                         required=True)
     parser.add_argument("--num_output_shards", type=int, default=1)
-    parser.add_argument("--model", choices={"falcon", "llama", "llama2", "codellama", "mistral"},
+    parser.add_argument("--model", choices={"falcon", "llama", "llama2", "codellama", "mistral", "phi3"},
                          default="llama2")
     parser.add_argument("--output_dir", help="Location to write HF model and tokenizer",
                         required=True)
@@ -606,7 +760,14 @@ def main():
             model_path=args.output_dir,
             input_base_path=args.input_dir,
             num_output_shards=args.num_output_shards,
-            vocab_size=vocab_size,
+            # vocab_size=vocab_size,
+        )
+    elif args.model == "phi3":
+        write_phi3_model(
+            model_path=args.output_dir,
+            input_base_path=args.input_dir,
+            num_output_shards=args.num_output_shards,
+            # vocab_size=vocab_size,
         )
     elif args.model == "falcon":
         write_falcon_model(

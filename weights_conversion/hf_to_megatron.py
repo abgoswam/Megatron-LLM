@@ -288,20 +288,14 @@ def phi3_to_megatron(
         prefix = f"layers.{layer}"
         hf_prefix = f"model.{prefix}"
         # identical weights
-        transformer[f"{prefix}.attention.dense.weight"] = \
-            weights[f"{hf_prefix}.self_attn.o_proj.weight"]
-        transformer[f"{prefix}.post_attention_layernorm.weight"] = \
-            weights[f"{hf_prefix}.post_attention_layernorm.weight"]
-        transformer[f"{prefix}.input_layernorm.weight"] = \
-            weights[f"{hf_prefix}.input_layernorm.weight"]
-        transformer[f"{prefix}.mlp.dense_4h_to_h.weight"] = \
-            weights[f"{hf_prefix}.mlp.down_proj.weight"]
+        transformer[f"{prefix}.attention.dense.weight"] = weights[f"{hf_prefix}.self_attn.o_proj.weight"]
+        transformer[f"{prefix}.post_attention_layernorm.weight"] = weights[f"{hf_prefix}.post_attention_layernorm.weight"]
+        transformer[f"{prefix}.input_layernorm.weight"] = weights[f"{hf_prefix}.input_layernorm.weight"]
+        transformer[f"{prefix}.mlp.dense_4h_to_h.weight"] = weights[f"{hf_prefix}.mlp.down_proj.weight"]
         # concatenate up, gate mlp weights
-        transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = \
-            weights[f"{hf_prefix}.mlp.gate_up_proj.weight"]
+        transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = weights[f"{hf_prefix}.mlp.gate_up_proj.weight"]
         # finally, qkv 
-        transformer[f"{prefix}.attention.query_key_value.weight"] = \
-            weights[f"{hf_prefix}.self_attn.qkv_proj.weight"]
+        transformer[f"{prefix}.attention.query_key_value.weight"] = weights[f"{hf_prefix}.self_attn.qkv_proj.weight"]
 
     return {"embedding": embedding, "transformer": transformer,
             "lm_head": lm_head}

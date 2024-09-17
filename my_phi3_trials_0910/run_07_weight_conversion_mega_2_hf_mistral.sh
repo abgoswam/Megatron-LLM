@@ -5,5 +5,5 @@
 
 python weights_conversion/megatron_to_hf.py \
     --input_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_mistral_7b_orig \
-	--output_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_mistral_7b_orig_hf \
+	--output_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_mistral_7b_orig2_hf \
     --model mistral

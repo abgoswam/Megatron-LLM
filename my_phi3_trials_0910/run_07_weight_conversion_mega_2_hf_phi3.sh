@@ -6,5 +6,7 @@ set -u
 
 python weights_conversion/megatron_to_hf.py \
     --input_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_phi3_orig2 \
-	--output_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_phi3_orig2_hf \
-    --model phi3
+	--output_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_phi3_orig4_hf \
+    --model phi3 \
+    --vocab_extra_ids_list "<|endoftext|>" \
+    --override_special_tokens "pad=<|endoftext|>"
