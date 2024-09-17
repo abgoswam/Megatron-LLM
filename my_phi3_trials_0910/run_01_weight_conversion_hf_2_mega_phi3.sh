@@ -15,7 +15,7 @@
 # mistral
 python ./weights_conversion/hf_to_megatron.py \
     --size 3 \
-    --out ./my_phi3_trials_0910/ckpts/out_phi3 \
+    --out /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_phi3_orig \
     --model-path microsoft/Phi-3-mini-4k-instruct \
     --cache-dir ./my_phi3_trials_0910/ckpts/cache_phi3 \
     phi3

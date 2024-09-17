@@ -4,8 +4,9 @@
 # vocab_file not set, assuming same tokenizer.model used by llama LlamaTokenizerFast
 
 python weights_conversion/megatron_to_hf.py \
-    --input_dir=./my_phi3_trials_0910/ckpts/out_phi3_reshard/ \
-	--output_dir=./my_phi3_trials_0910/ckpts/out_phi3_hf/
+    --input_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_phi3_orig \
+	--output_dir=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_phi3_orig_hf \
+    --model phi3
 
 # python weights_conversion/megatron_to_hf.py \
 #     --input_dir=./my_phi3_trials_0910/ckpts/out_phi3_reshard/ \

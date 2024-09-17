@@ -336,6 +336,33 @@ def write_mistral_model(
     max_num_params_per_shard = param_count*2 // max(1,(num_output_shards-1))
     model.save_pretrained(model_path, max_shard_size=max_num_params_per_shard)
 
+def write_phi3_model(
+    model_path,
+    input_base_path,
+    num_output_shards: int=2,
+    norm_eps: float=1e-5,
+    rope_theta: float=10000.0,
+    vocab_size: int=None,
+):
+
+    # Preliminaries
+    print(f"Fetching all parameters from the checkpoint at {input_base_path}.")
+    os.makedirs(model_path, exist_ok=True)
+    with open(os.path.join(input_base_path, 'latest_checkpointed_iteration.txt')) as f:
+        iteration = f.read()
+    if iteration != "release":
+        iteration = f"iter_{int(iteration):07d}"
+    print(f"Fetching iteration {iteration}")
+
+    # Load weights
+    base_path = Path(input_base_path)/iteration
+    assert len(list(base_path.glob("mp_rank_*"))) == 1, "Unshard your model with checkpoint_util.py first!"
+    loaded = torch.load(base_path/"mp_rank_00"/"model_optim_rng.pt", map_location="cpu")
+    args = loaded['args']
+
+    print(loaded)
+    print("="*30)
+    print(args)
 
 def write_falcon_model(
     model_path: str,
@@ -481,7 +508,7 @@ def write_falcon_model(
 
 
 def write_tokenizer(args: Namespace):
-    if args.model in {"llama", "llama2", "codellama", "mistral"}:
+    if args.model in {"llama", "llama2", "codellama", "mistral", "phi3"}:
         # mistral also use LlamaTokenizerFast
         args.tokenizer_type = "SentencePieceTokenizer"
         if args.vocab_file:
@@ -497,6 +524,14 @@ def write_tokenizer(args: Namespace):
                 hf_repo_name = "TheBloke/CodeLlama-13B-fp16"
             elif args.model == "mistral":
                 hf_repo_name = "mistralai/Mistral-7B-v0.1"
+            elif args.model == "phi3":
+                # Keep things simple. Just persist existing tokenizer files.
+                hf_repo_name = "microsoft/Phi-3-mini-4k-instruct"
+                hf_tokenizer = AutoTokenizer.from_pretrained(hf_repo_name, cache_dir=args.cache_dir)
+                print("Phi3 Tokenizer configuration:")
+                print(hf_tokenizer)
+                hf_tokenizer.save_pretrained(args.output_dir)
+                return
             else:
                 hf_repo_name = "meta-llama/Llama-2-7b-hf"
             try:  # try loading from huggingface
@@ -517,8 +552,8 @@ def write_tokenizer(args: Namespace):
     # add default args for megatron tokenizer
     args.rank = 0
     args.vocab_extra_ids = 0
-    args.new_tokens = False
-    args.make_vocab_size_divisible_by = 64
+    args.new_tokens = True
+    args.make_vocab_size_divisible_by = 128
     args.tensor_model_parallel_size = 1
     mt_tokenizer = build_tokenizer(args)
 
@@ -584,7 +619,7 @@ def main():
     parser.add_argument("--input_dir", help="Location of Megatron weights",
                         required=True)
     parser.add_argument("--num_output_shards", type=int, default=1)
-    parser.add_argument("--model", choices={"falcon", "llama", "llama2", "codellama", "mistral"},
+    parser.add_argument("--model", choices={"falcon", "llama", "llama2", "codellama", "mistral", "phi3"},
                          default="llama2")
     parser.add_argument("--output_dir", help="Location to write HF model and tokenizer",
                         required=True)
@@ -611,6 +646,14 @@ def main():
     elif args.model == "mistral":
         print("Converting from megatron to Mistral..")
         write_mistral_model(
+            model_path=args.output_dir,
+            input_base_path=args.input_dir,
+            num_output_shards=args.num_output_shards,
+            # vocab_size=vocab_size,
+        )
+    elif args.model == "phi3":
+        print("Converting from megatron to phi3..")
+        write_phi3_model(
             model_path=args.output_dir,
             input_base_path=args.input_dir,
             num_output_shards=args.num_output_shards,
