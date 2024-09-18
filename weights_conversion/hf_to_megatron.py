@@ -393,24 +393,24 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
         # https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json
         # https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json
         args = {
-            "num_layers": 32, # =============================================== "num_hidden_layers": 32, =======  vs mistral (32)    == vs llama2 (32)
-            "hidden_size": 3072, # ============================================ "hidden_size": 3072,============  vs mistral (4096)  == vs llama2 (4096)
-            "num_attention_heads": 32, # ====================================== "num_attention_heads": 32, =====  vs mistral (32)    == vs llama2 (32)
-            "num_attention_heads_kv": 32,  # ================================== "num_key_value_heads": 32, ====== vs mistral (8)  ===== vs llama2 (32)
-            "ffn_hidden_size": 8192,  # ======================================= "intermediate_size": 8192, ====== vs mistral (14336) == vs llama2 (11008)
+            "num_layers": 32,
+            "hidden_size": 3072,
+            "num_attention_heads": 32,
+            "num_attention_heads_kv": 32,  # except this - GroupedAttention
+            "ffn_hidden_size": 8192,  # except this
             "parallel_attn": False,
-            "make_vocab_size_divisible_by": 64,  # (modified to work) =========
-            "glu_activation": "swiglu",  # (modified to work) ================= "hidden_act": "silu", =========== vs mistral (silu) ==  vs llama2 (silu)
-            "padded_vocab_size": 32064, # (modified to work) ================== "vocab_size": 32064 ============= vs mistral (32000) =  vs llama2 (32000)
-            "use_rms_norm": True, # =========================================== "rms_norm_eps": 1e-05, ========== vs mistral (1e-05) =  vs llama2 (1e-05)
-            "tie_embed_logits": False, # ====================================== "tie_word_embeddings": false,
+            "make_vocab_size_divisible_by": 64,
+            "glu_activation": "swiglu",  # == silu
+            "padded_vocab_size": 32064,
+            "use_rms_norm": True,
+            "tie_embed_logits": False,
             "tokenizer_type": "SentencePieceTokenizer",
             
-            "max_position_embeddings": 4096, # =============================== "max_position_embeddings": 4096, == vs mistral (32768) == vs llama2 (4096)
-            "seq_length": 4096,
-            "layernorm_epsilon": 1e-5, # ===================================== "rms_norm_eps": 1e-05, ============ vs mistral (1e-05) == vs llama2 (1e-05)
-            "rope_theta": 10000.0, # ========================================= "rope_theta": 10000.0, ============ vs mistral (10000.0) =vs llama2 (10000.0)
-            "sliding_window_size": 4096, # (modified to work) ================ "sliding_window": 2047, =========== vs mistral (4096) ====vs llama2 (no SW)
+            "max_position_embeddings": 32768,
+            "seq_length": 32768,
+            "layernorm_epsilon": 1e-5,
+            "rope_theta": 10000.0,
+            "sliding_window_size": 4096,
         }
     else:  # llama1, llama2, codellama
         args = {"num_layers": llama_s2layer[size],
