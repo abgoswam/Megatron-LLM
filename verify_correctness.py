@@ -1,10 +1,3 @@
-# import debugpy
-# debugpy.listen(5678)  # 5678 is port
-# print("Waiting for debugger attach")
-# debugpy.wait_for_client()
-# debugpy.breakpoint()
-# print('break on this line')
-
 import os
 import json
 import warnings
@@ -14,7 +7,7 @@ from typing import Optional
 import torch
 import llama
 from torch import nn
-from transformers import AutoModelForCausalLM, LlamaForCausalLM, LlamaTokenizer, MistralForCausalLM, Phi3ForCausalLM
+from transformers import AutoModelForCausalLM, LlamaForCausalLM, LlamaTokenizer, MistralForCausalLM
 from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 
 from megatron import get_args, update_num_microbatches
@@ -94,17 +87,6 @@ def hf_provider(name: str, cache_dir: Optional[Path], device: str,
                   "checkpoint, assuming cache_dir instead")
             model = MistralForCausalLM.from_pretrained(
                 f"mistralai/Mistral-{size}B-v0.1", cache_dir=cache_dir,
-                **extra_kwargs
-            )
-    elif name == "phi3":
-        assert size == 3, "phi3 only supports 3.8B model"
-        try:
-            model = Phi3ForCausalLM.from_pretrained(cache_dir, **extra_kwargs)
-        except OSError:
-            print(f"Cache dir {cache_dir} does not look like a huggingface "
-                  "checkpoint, assuming cache_dir instead")
-            model = Phi3ForCausalLM.from_pretrained(
-                f"microsoft/Phi-3-mini-4k-instruct", cache_dir=cache_dir,
                 **extra_kwargs
             )
     else:
