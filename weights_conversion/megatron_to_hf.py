@@ -441,7 +441,7 @@ def write_phi3_model(
 
         # load Phi3 config from huggingface
         config = Phi3Config.from_pretrained(
-            "microsoft/Phi-3.5-mini-instruct"
+            "microsoft/Phi-3-mini-4k-instruct"
         )
         # assert configuration matches
         assert config.hidden_size == n_hidden
@@ -643,7 +643,7 @@ def write_tokenizer(args: Namespace):
             elif args.model == "mistral":
                 hf_repo_name = "mistralai/Mistral-7B-v0.1"
             elif args.model == "phi3":
-                hf_repo_name = "microsoft/Phi-3.5-mini-instruct"
+                hf_repo_name = "microsoft/Phi-3-mini-4k-instruct"
             else:
                 hf_repo_name = "meta-llama/Llama-2-7b-hf"
             try:  # try loading from huggingface
