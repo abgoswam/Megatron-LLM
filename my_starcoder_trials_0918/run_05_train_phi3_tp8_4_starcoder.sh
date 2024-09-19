@@ -15,7 +15,7 @@ GPUS_PER_NODE=8
 echo "TP: $TP, GBZ: $GBZ"
 
 LOG_ARGS="--log_interval 1 --save_interval 500 --eval_interval 100000"
-TRAIN_ARGS="--train_iters 5000 --lr_decay_style cosine --lr_warmup_iters 50 --lr 3e-4 --min_lr 1e-6"
+TRAIN_ARGS="--train_iters 5000 --lr_decay_style cosine --lr_warmup_iters 50 --lr 0 --min_lr 0"
 DISTRIBUTED_ARGS="--nproc_per_node ${GPUS_PER_NODE} --nnodes 1 --node_rank 0 --master_addr localhost --master_port 8000"
 
 # MY_ARGS_1="--tensor_model_parallel_size 2 --pipeline_model_parallel_size 1"
@@ -27,8 +27,8 @@ LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_ne
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
 	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2_tp8 \
-	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2_tp8_save_starcoder1 \
-	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2_tp8_save_starcoder1/tensorboard/ \
+	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2_tp8_save_LR0 \
+	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2_tp8_save_LR0/tensorboard/ \
 	--data_path /tmp/amlt-code-download/abgoswam-epf2/my_starcoder_trials_0918/data/my_starcoder_phi3_text_document \
 	--model_name mistral \
 	--tokenizer_type SentencePieceTokenizer \
