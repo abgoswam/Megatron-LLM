@@ -718,7 +718,7 @@ def write_tokenizer(args: Namespace):
             warnings.warn(f"Cannot override key {key}")
         except KeyError:
             warnings.warn(f"Token {value} not found in megatron tokenizer")
-
+    print("HF Tokenizer special tokens", hf_tokenizer.special_tokens_map)
     print("Final HF Tokenizer configuration:")
     print(hf_tokenizer)
     hf_tokenizer.save_pretrained(args.output_dir)
