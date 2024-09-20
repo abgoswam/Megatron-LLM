@@ -27,9 +27,9 @@ LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_ne
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
 	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_tp${TP} \
-	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_tp${TP}_save \
-	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_tp${TP}_save/tensorboard/ \
-	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/data/my_starcoder_phi3_text_document \
+	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_tp${TP}_redpajama \
+	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_tp${TP}_redpajama/tensorboard/ \
+	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/data/my_redpajama_phi3_text_document \
 	--model_name mistral \
 	--tokenizer_type SentencePieceTokenizer \
 	--vocab_file /mnt/synthdatastore/agoswami/models_03_laborday/Phi-3-mini-4k-instruct/tokenizer.model \
@@ -40,4 +40,5 @@ torchrun $DISTRIBUTED_ARGS finetune.py \
 	--sequence_parallel \
 	--recompute_granularity selective \
 	--use_checkpoint_args \
+	--split 970,30,0 \
 	$COMMON_ARGS $LOG_ARGS $TRAIN_ARGS $LLAMA_ARGS
