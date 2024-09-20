@@ -11,7 +11,8 @@ print('\n'.join(sys.path))
 # # checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_mistral_7b/release/mp_rank_00/model_optim_rng.pt'
 # checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_mistral_7b/release/mp_rank_00/model_optim_rng.pt'
 # checkpoint_path = '/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi3_trials_0910/ckpts/out_mistral_7b_orig/release/mp_rank_00//model_optim_rng.pt'
-checkpoint_path = '/mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2/release//mp_rank_00/model_optim_rng.pt'
+# checkpoint_path = '/mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig2/release//mp_rank_00/model_optim_rng.pt'
+checkpoint_path = '/mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig2/release//mp_rank_00/model_optim_rng.pt'
 
 # Load the checkpoint
 checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
@@ -29,6 +30,9 @@ model_state_dict = checkpoint['model']['language_model']['transformer']
 # Print the layers and their sizes
 for name, param in model_state_dict.items():
     print(f"Layer: {name}, Size: {param.size()}")
+
+print(model_state_dict["layers.0.mlp.dense_h_to_4h.weight"])
+print(model_state_dict["layers.0.mlp.dense_h_to_4h.weight"].shape)
 
 # ==================== resharded ckpt seem sto have a slightly different model architecture ===================
 # checkpoint_path = '/tmp/amlt-code-download/abgoswam_epf/my_phi3_trials_0910/ckpts/out_phi3_reshard/iter_0000020/mp_rank_00/model_optim_rng.pt'

@@ -122,6 +122,13 @@ class ParallelMLP(MegatronModule):
             **_args_to_kwargs(args),
             world_size=world_size)
 
+        # Print the weight and bias shape
+        print(self.dense_h_to_4h.weight.shape)
+        print(self.dense_4h_to_h.weight.shape)
+        print(self.activation_func)
+        assert False, "[AG1]"
+
+
     def forward(self, hidden_states):
         # [s, b, 4hp]
         intermediate_parallel, bias_parallel = self.dense_h_to_4h(hidden_states)

@@ -13,31 +13,45 @@ import torch
 # model_name_or_path = "./weights_conversion/out_llama2_7b_hf"
 # model_name_or_path = "microsoft/Phi-3-small-8k-instruct"
 model_name_or_path = "microsoft/Phi-3-mini-4k-instruct"
+# model_name_or_path = "mistralai/Mistral-7B-v0.1"
+# model_name_or_path = "tiiuae/falcon-7b"
+
 
 # Load the tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+model = AutoModelForCausalLM.from_pretrained(model_name_or_path)
 
 print(model)
 
-# Step 2: Tokenize a simple sentence
-sentence = "How are you today?"
-inputs = tokenizer(sentence, return_tensors="pt")
-print("Tokenized input:", inputs)
+# weights = model.state_dict()
+# hf_prefix = "model.layers.0"
+# print(f"======================: {hf_prefix}.mlp.up_proj.weight ============" )
+# print(weights[f"{hf_prefix}.mlp.up_proj.weight"])
+# print(f"======================: {hf_prefix}.mlp.gate_proj.weight ============" )
+# print(weights[f"{hf_prefix}.mlp.gate_proj.weight"])
 
-# Step 3: Display the model layers along with their sizes and shapes
-print("\nModel layers and their shapes:")
-for name, param in model.named_parameters():
-    print(f"{name}: shape={param.shape}")
+# # Step 2: Tokenize a simple sentence
+# sentence = "How are you today?"
+# inputs = tokenizer(sentence, return_tensors="pt")
+# print("Tokenized input:", inputs)
 
-# Step 4: Use the above sentence to generate responses from the model
-# Generate response
-output = model.generate(
-    inputs["input_ids"], 
-    attention_mask=inputs["attention_mask"],
-    max_length=50, 
-    num_return_sequences=1)
-generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+# # Step 3: Display the model layers along with their sizes and shapes
+# print("\nModel layers and their shapes:")
+# for name, param in model.named_parameters():
+#     print(f"{name}: shape={param.shape}")
+#     if name == "model.layers.0.mlp.gate_proj.weight" or name == "model.layers.0.mlp.up_proj.weight":
+#         print(param)
 
-print("\nGenerated Response:")
-print(generated_text)
+
+
+# # Step 4: Use the above sentence to generate responses from the model
+# # Generate response
+# output = model.generate(
+#     inputs["input_ids"], 
+#     attention_mask=inputs["attention_mask"],
+#     max_length=50, 
+#     num_return_sequences=1)
+# generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+
+# print("\nGenerated Response:")
+# print(generated_text)
