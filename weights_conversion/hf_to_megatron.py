@@ -275,6 +275,7 @@ def phi3_to_megatron(
         hidden = 3072  # "hidden_size": 3072, in https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json
         n_heads = 32
         n_kv_heads = 32  # "num_key_value_heads": 32, in https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/config.json
+        ffn_hidden_size = 8192
     
     n_hidden_per_head = hidden // n_heads
 
@@ -293,7 +294,19 @@ def phi3_to_megatron(
         transformer[f"{prefix}.input_layernorm.weight"] = weights[f"{hf_prefix}.input_layernorm.weight"]
         transformer[f"{prefix}.mlp.dense_4h_to_h.weight"] = weights[f"{hf_prefix}.mlp.down_proj.weight"]
         # concatenate up, gate mlp weights
-        transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = weights[f"{hf_prefix}.mlp.gate_up_proj.weight"]
+        # Phi3 fuses layers [gate (w1), up (w3)]
+        # https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/modeling_phi3.py#L232
+        w1, w3 = torch.split(
+            weights[f"{hf_prefix}.mlp.gate_up_proj.weight"], 
+            ffn_hidden_size,
+            dim=0)
+
+        # SwiGLU applies the activation on the gate(w1). The codebase expects gate(w1) to be the bottom matrix. 
+        # /tmp/amlt-code-download/abgoswam_epf/megatron/model/glu_activations.py
+        transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = torch.concat([
+            w3,  # w3
+            w1  # w1
+        ])
         # finally, qkv 
         transformer[f"{prefix}.attention.query_key_value.weight"] = weights[f"{hf_prefix}.self_attn.qkv_proj.weight"]
 

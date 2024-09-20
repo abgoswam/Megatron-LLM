@@ -23,9 +23,9 @@ COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_new_tokens --layernorm_epsilon 1e-5"
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
-	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig2 \
-	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig2_LR0 \
-	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig2_LR0/tensorboard/ \
+	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig4 \
+	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig4_LR0 \
+	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig4_LR0/tensorboard/ \
 	--data_path /tmp/amlt-code-download/abgoswam_epf/my_starcoder_trials_0918/data/my_starcoder_mistral_text_document \
 	--model_name mistral \
 	--tokenizer_type SentencePieceTokenizer \

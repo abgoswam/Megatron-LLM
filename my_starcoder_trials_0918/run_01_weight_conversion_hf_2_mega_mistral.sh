@@ -16,5 +16,5 @@
 python ./weights_conversion/hf_to_megatron.py \
     --size 7 \
     --model-path mistralai/Mistral-7B-v0.1 \
-    --out /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig3 \
+    --out /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_mistral_7b_orig4 \
     mistral

@@ -389,10 +389,21 @@ def write_phi3_model(
         for layer_i in range(n_layers):
             filename = f"pytorch_model-{layer_i + 1}-of-{n_layers + 1}.bin"
 
+            ffn_w1, ffn_w3 = convert_ffn(llama_mega=loaded, 
+                            layer_idx=layer_i, 
+                            n_dense=n_dense)
+
+            # Phi3 fuses layers [gate (w1), up (w3)]
+            # https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/modeling_phi3.py#L232
+            gate_up_proj = torch.concat([
+                ffn_w1,
+                ffn_w3
+            ])
+
             state_dict = {
                 f"model.layers.{layer_i}.self_attn.qkv_proj.weight": loaded["transformer"][f"layers.{layer_i}.attention.query_key_value.weight"],
                 f"model.layers.{layer_i}.self_attn.o_proj.weight": loaded["transformer"][f"layers.{layer_i}.attention.dense.weight"],
-                f"model.layers.{layer_i}.mlp.gate_up_proj.weight": loaded["transformer"][f"layers.{layer_i}.mlp.dense_h_to_4h.weight"],
+                f"model.layers.{layer_i}.mlp.gate_up_proj.weight": gate_up_proj,
                 f"model.layers.{layer_i}.mlp.down_proj.weight": loaded["transformer"][f"layers.{layer_i}.mlp.dense_4h_to_h.weight"],
                 f"model.layers.{layer_i}.input_layernorm.weight": loaded["transformer"][f"layers.{layer_i}.input_layernorm.weight"],
                 f"model.layers.{layer_i}.post_attention_layernorm.weight": loaded["transformer"][f"layers.{layer_i}.post_attention_layernorm.weight"],
@@ -405,14 +416,6 @@ def write_phi3_model(
                 # model.layers.0.mlp.down_proj.weight: shape=torch.Size([3072, 8192])
                 # model.layers.0.input_layernorm.weight: shape=torch.Size([3072])
                 # model.layers.0.post_attention_layernorm.weight: shape=torch.Size([3072])
-
-                # layers in HF -> mega code 
-                # transformer[f"{prefix}.attention.query_key_value.weight"] = weights[f"{hf_prefix}.self_attn.qkv_proj.weight"]  #qkv
-                # transformer[f"{prefix}.attention.dense.weight"] = weights[f"{hf_prefix}.self_attn.o_proj.weight"]
-                # transformer[f"{prefix}.mlp.dense_h_to_4h.weight"] = weights[f"{hf_prefix}.mlp.gate_up_proj.weight"]
-                # transformer[f"{prefix}.mlp.dense_4h_to_h.weight"] = weights[f"{hf_prefix}.mlp.down_proj.weight"]
-                # transformer[f"{prefix}.input_layernorm.weight"] = weights[f"{hf_prefix}.input_layernorm.weight"]
-                # transformer[f"{prefix}.post_attention_layernorm.weight"] = weights[f"{hf_prefix}.post_attention_layernorm.weight"]
             }
 
             for k, v in state_dict.items():

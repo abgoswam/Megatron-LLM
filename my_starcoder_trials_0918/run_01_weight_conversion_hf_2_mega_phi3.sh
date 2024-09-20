@@ -16,5 +16,5 @@
 python ./weights_conversion/hf_to_megatron.py \
     --size 3 \
     --model-path microsoft/Phi-3-mini-4k-instruct \
-    --out /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/ckpts/out_phi3_orig3 \
+    --out /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1 \
     phi3

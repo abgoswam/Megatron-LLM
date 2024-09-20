@@ -21,7 +21,7 @@
 python tools/preprocess_data.py \
         --input=/mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0918/raw.jsonl \
         --output_prefix=my_starcoder_phi3 \
-        --vocab_file=/tmp/amlt-code-download/abgoswam-epf2/my_starcoder_trials_0918/ckpts/Phi-3-mini-4k-instruct/tokenizer.model \
+        --vocab_file=/tmp/amlt-code-download/abgoswam_epf/my_starcoder_trials_0918/ckpts/Phi-3-mini-4k-instruct/tokenizer.model \
         --tokenizer_type=SentencePieceTokenizer \
         --workers=2 \
         --dataset_impl=mmap \
