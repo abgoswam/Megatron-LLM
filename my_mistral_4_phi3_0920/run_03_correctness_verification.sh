@@ -7,9 +7,9 @@ torchrun $DISTRIBUTED_ARGS verify_correctness.py \
 	--model_name mistral \
 	--model_size 3 \
 	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1 \
-	--data_path=./my_repro_0908/my_long_corpus_repro_data/my_long_corpus_8192_mistral_text_document \
+	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/data/my_starcoder_julia_text_document \
 	--tokenizer_type SentencePieceTokenizer \
-	--vocab_file /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain//tokenizer.model \
+	--vocab_file /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/tokenizer.model \
     --vocab_extra_ids 64 \
 	--huggingface_cache /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/ \
 	--huggingface_device=cuda:1 \
