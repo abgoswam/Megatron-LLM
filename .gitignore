@@ -1,4 +1,5 @@
 .vscode
+output.log
 
 __pycache__
 *.so

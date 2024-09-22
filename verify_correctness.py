@@ -79,14 +79,17 @@ def hf_provider(name: str, cache_dir: Optional[Path], device: str,
             **extra_kwargs
         )
     elif name == "mistral":
-        assert size == 7, "Mistral only supports 7B model"
+        assert (size == 3) or (size == 7), "Mistral only supports 7B model. Now added 3B"
         try:
+            print(f"cache_dir: {cache_dir}")
+            print(**extra_kwargs)
             model = MistralForCausalLM.from_pretrained(cache_dir, **extra_kwargs)
         except OSError:
             print(f"Cache dir {cache_dir} does not look like a huggingface "
                   "checkpoint, assuming cache_dir instead")
             model = MistralForCausalLM.from_pretrained(
-                f"mistralai/Mistral-{size}B-v0.1", cache_dir=cache_dir,
+                f"mistralai/Mistral-{size}B-v0.1" if size == 7 else "microsoft/Phi-3-mini-4k-instruct", 
+                cache_dir=cache_dir,
                 **extra_kwargs
             )
     else:
