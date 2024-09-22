@@ -5,7 +5,8 @@ print('\n'.join(sys.path))
 
 from megatron.tokenizer.tokenizer import _SentencePieceTokenizer
 
-vocab_file = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/tokenizer.model"
+# vocab_file = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/tokenizer.model"
+vocab_file = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_mistral7b_orig1/tokenizer.model"
 
 # mt_tokenizer = _SentencePieceTokenizer(vocab_file)
 # mt_tokenizer = _SentencePieceTokenizer(vocab_file, new_tokens=False)
