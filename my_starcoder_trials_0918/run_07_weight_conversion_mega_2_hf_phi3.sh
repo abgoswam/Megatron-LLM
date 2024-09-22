@@ -10,3 +10,9 @@ python weights_conversion/megatron_to_hf.py \
     --vocab_extra_ids_list "<|endoftext|>" \
     --override_special_tokens "pad=<|endoftext|>" # need to re-insert because it got overwritten L686
 
+# python weights_conversion/megatron_to_hf.py \
+#     --input_dir  /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_reshard10000_save/ \
+# 	--output_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_starcoder_trials_0920/ckpts/out_phi3_orig1_reshard10000_save_hf/ \
+#     --model phi3 \
+#     --vocab_extra_ids_list "<|endoftext|>" \
+#     --override_special_tokens "pad=<|endoftext|>" # need to re-insert because it got overwritten L686
