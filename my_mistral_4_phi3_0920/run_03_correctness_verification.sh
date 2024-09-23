@@ -4,13 +4,13 @@ LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_ne
 COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 
 torchrun $DISTRIBUTED_ARGS verify_correctness.py \
-	--model_name mistral \
+	--model_name llama2 \
 	--model_size 3 \
-	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1 \
-	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/data/my_starcoder_julia_text_document \
+	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2 \
+	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/data_verify_correctness_combo2/my_starcoder4_using_combo2_text_document \
 	--tokenizer_type SentencePieceTokenizer \
-	--vocab_file /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/tokenizer.model \
     --vocab_extra_ids 64 \
-	--huggingface_cache /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/ \
+	--vocab_file /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Llama-2-7b-Phi3-hf/tokenizer.model \
+	--huggingface_cache /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Llama-2-7b-Phi3-hf/ \
 	--huggingface_device=cuda:1 \
 	$COMMON_ARGS $LLAMA_ARGS 

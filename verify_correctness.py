@@ -74,15 +74,15 @@ def hf_provider(name: str, cache_dir: Optional[Path], device: str,
               "assuming it's raw llama2 weights instead")
         model = Llama2Wrapper(cache_dir)
     elif name == "llama2":
-        model = LlamaForCausalLM.from_pretrained(
-            f"meta-llama/Llama-2-{size}b-hf", cache_dir=cache_dir,
-            **extra_kwargs
-        )
+        model = LlamaForCausalLM.from_pretrained(cache_dir, **extra_kwargs)
+        # model = LlamaForCausalLM.from_pretrained(
+        #     f"meta-llama/Llama-2-{size}b-hf", cache_dir=cache_dir,
+        #     **extra_kwargs
+        # )
     elif name == "mistral":
         assert (size == 3) or (size == 7), "Mistral only supports 7B model. Now added 3B"
         try:
             print(f"cache_dir: {cache_dir}")
-            print(**extra_kwargs)
             model = MistralForCausalLM.from_pretrained(cache_dir, **extra_kwargs)
         except OSError:
             print(f"Cache dir {cache_dir} does not look like a huggingface "
