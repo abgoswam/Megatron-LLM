@@ -16,7 +16,8 @@ import torch
 # model_name = "./Phi-3.5-pretrain"
 # model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/"
 # model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_reshardckpt10000_save_starcoder1_hf"
-model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_reshardckpt10000_save_redpajama1_hf"
+# model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_reshardckpt10000_save_redpajama1_hf"
+model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_reshard7500_save_starcoder_hf"
 
 
 # Load the tokenizer and model

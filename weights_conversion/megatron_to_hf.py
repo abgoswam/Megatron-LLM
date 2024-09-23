@@ -497,8 +497,8 @@ def write_tokenizer(args: Namespace):
                 hf_tokenizer = LlamaTokenizerFast.from_pretrained(hf_repo_name,
                                                             cache_dir=args.cache_dir)
                 print("LlamaTokenizerFast loaded from huggingface")
-                print("vocab_file not set, assuming same tokenizer.model used "
-                      "by llama LlamaTokenizerFast")
+                print(f"vocab_file not set, assuming same tokenizer.model used "
+                      f"by llama LlamaTokenizerFast: {hf_tokenizer.vocab_file}")
                 args.vocab_file = hf_tokenizer.vocab_file
             except OSError:
                 print(f"ERROR: Could not load tokenizer from HF repo '{hf_repo_name}'. "
