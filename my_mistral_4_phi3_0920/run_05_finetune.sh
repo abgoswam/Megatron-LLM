@@ -18,17 +18,18 @@ TRAIN_ARGS="--train_iters 10000 --lr_decay_style cosine --lr_warmup_iters 50 --l
 DISTRIBUTED_ARGS="--nproc_per_node ${GPUS_PER_NODE} --nnodes 1 --node_rank 0 --master_addr localhost --master_port 8000"
 
 # https://github.com/epfLLM/Megatron-LLM/issues/70
-COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 LLAMA_ARGS="--use_rms_norm --glu_activation swiglu --no_tie_embed_logits --no_new_tokens --layernorm_epsilon 1e-5"
+COMMON_ARGS="--hidden_dropout 0.0 --attention_dropout 0.0 --no_bias_gelu_fusion"
 
 torchrun $DISTRIBUTED_ARGS finetune.py \
-	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_tp${TP} \
-	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_tp${TP}_save_redpajama1 \
-	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_tp${TP}_save_redpajama1/tensorboard/ \
-	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/data/my_redpajama_text_document \
-	--model_name mistral \
-	--tokenizer_type SentencePieceTokenizer \
-	--vocab_file /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/tokenizer.model \
+    --model_name llama2 \
+	--load /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_tp${TP} \
+	--save /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_tp${TP}_save_starcoder \
+	--tensorboard_dir /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_tp${TP}_save_starcoder/tensorboard/ \
+	--data_path /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/data_verify_correctness_combo2/my_starcoder4_using_combo2_text_document \
+    --tokenizer_type SentencePieceTokenizer \
+    --vocab_extra_ids 64 \
+	--vocab_file /mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Llama-2-7b-Phi3-hf/tokenizer.model \
 	--bf16 \
 	--use_flash_attn \
 	--micro_batch_size 1 \
