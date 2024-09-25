@@ -3,7 +3,7 @@ import argparse
 import re
 import json
 import os
-# import deepspeed
+import deepspeed
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 import torch
 from tqdm import tqdm
@@ -171,20 +171,39 @@ def main():
 
     torch_dtype = config.torch_dtype if config.torch_dtype in [torch.float16, torch.bfloat16] else torch.bfloat16 # force run bfloat16
     if str2bool(args.use_flash_attention):
-        # torch_dtype = config.torch_dtype if config.torch_dtype in [torch.float16, torch.bfloat16] else torch.bfloat16 # force run bfloat16
+        try:
+            # torch_dtype = config.torch_dtype if config.torch_dtype in [torch.float16, torch.bfloat16] else torch.bfloat16 # force run bfloat16
+            model = AutoModelForCausalLM.from_pretrained(
+                checkpoint, 
+                config=config, 
+                trust_remote_code=True, 
+                torch_dtype=torch_dtype, 
+                attn_implementation="flash_attention_2")
+        except Exception as e:
+            print(f"Failed to load model from {checkpoint} using flash_attention_2. Trying to load without flash attention.")
+            model = AutoModelForCausalLM.from_pretrained(
+                checkpoint, 
+                config=config, 
+                trust_remote_code=True, 
+                torch_dtype=torch_dtype)
+    else:
         model = AutoModelForCausalLM.from_pretrained(
             checkpoint, 
-            device_map="auto",
             config=config, 
             trust_remote_code=True, 
-            torch_dtype=torch_dtype, 
-            attn_implementation="flash_attention_2")
+            torch_dtype=torch_dtype)
 
-    # # torchtype consistent
-    # ds_engine = deepspeed.init_inference(model, tensor_parallel={"tp_size": world_size}, dtype=torch_dtype, replace_with_kernel_inject=False) #todo: would be nice to have replace_with_kernel_inject=True but it gives cuda compilation errors
-    # model = ds_engine.module
+    # torchtype consistent
+    world_size = 8
+    ds_engine = deepspeed.init_inference(
+        model, 
+        tensor_parallel={"tp_size": world_size}, 
+        dtype=torch_dtype, 
+        replace_with_kernel_inject=False) #todo: would be nice to have replace_with_kernel_inject=True but it gives cuda compilation errors
+    
+    model = ds_engine.module
 
-    # Move the model to GPUs (if not automatically done)
+    # # Move the model to GPUs (if not automatically done)
     # model = model.to("cuda")
 
     tokenizer = AutoTokenizer.from_pretrained(checkpoint, trust_remote_code=True, padding_side="right")
@@ -197,7 +216,7 @@ def main():
     if model.generation_config.pad_token_id is None and model.generation_config.eos_token_id is not None:
         model.generation_config.pad_token_id = model.generation_config.eos_token_id
 
-    inputs = tokenizer("Fun fact:", return_tensors="pt")
+    inputs = tokenizer("Fun fact:", return_tensors="pt").to("cuda")
     outputs = model.generate(**inputs, max_new_tokens=20)
     print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
