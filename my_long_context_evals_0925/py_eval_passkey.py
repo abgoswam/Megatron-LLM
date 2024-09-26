@@ -54,9 +54,28 @@ def extract_int(response):
     # Return the integer if a match is found, otherwise return None
     return int(match.group()) if match else None
 
+def resilient_generate(model, *args, **kwargs):
+    oom = False
+    print(args)
+    print(kwargs)
+
+    try:
+        return model.generate(*args, **kwargs)
+    except torch.cuda.OutOfMemoryError as e:
+        print(e)
+        print("retrying with cache_implementation='quantized'")
+        oom = True
+    if oom:
+        torch.cuda.empty_cache()
+        kwargs["cache_implementation"] = "quantized"
+        kwargs["cache_config"] = {"nbits": 4, "backend": "quanto"}
+        return model.generate(*args, **kwargs)
+
 def model_gen(model, tokenizer, prompt_text):
-    inputs = tokenizer(prompt_text, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=20)
+    inputs = tokenizer(prompt_text, return_tensors="pt").to(model.device)
+
+    kwargs = { "max_new_tokens" : 20 }
+    outputs = resilient_generate(model, **inputs, **kwargs)
 
     prompt_text_token_len = inputs['input_ids'].shape[1]
     generated_text = tokenizer.decode(outputs[0][prompt_text_token_len:], skip_special_tokens=True)
@@ -142,10 +161,10 @@ def main():
     parser.add_argument("--max_position_embeddings", type=int, default=2**18)
     parser.add_argument("--model_path", type=str, default="meta-llama/Meta-Llama-3.1-8B")
 
-    parser.add_argument("--trials", type=int, default=5)
+    parser.add_argument("--trials", type=int, default=2)
     parser.add_argument("--seed", type=int, default=98052)
     parser.add_argument("--use_flash_attention", type=str, default="true", help="Whether to use flash attention or not.")
-    parser.add_argument("--output_dir", type=str, default=".")
+    parser.add_argument("--output_dir", type=str, default=os.path.dirname(os.path.abspath(__file__)))
 
     args, unknown_args = parser.parse_known_args()
     print(f"known_args: {args}")
@@ -183,8 +202,8 @@ def main():
         # torch_dtype = config.torch_dtype if config.torch_dtype in [torch.float16, torch.bfloat16] else torch.bfloat16 # force run bfloat16
         model = AutoModelForCausalLM.from_pretrained(
             checkpoint, 
-            device_map="auto",
             config=config, 
+            device_map="auto",
             trust_remote_code=True, 
             torch_dtype=torch_dtype, 
             attn_implementation="flash_attention_2")
