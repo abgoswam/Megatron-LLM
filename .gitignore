@@ -1,3 +1,7 @@
+accuracy.jsonl
+heatmap_*.png
+results.jsonl
+
 .vscode
 output.log
 
