@@ -50,11 +50,11 @@ from utils.permute_qkv import permute_qkv
 from utils.merge_llama import merge_llama
 
 
-llama_s2layer = {7: 32, 13: 40, 30: 60, 34: 48, 65: 80, 70: 80}
-llama_s2heads = {7: 32, 13: 40, 30: 52, 34: 64, 65: 64, 70: 64}
-llama_s2dense = {7: 11008, 13: 13824, 30: 17920, 34: 22016, 65: 22016,
+llama_s2layer = {3: 32, 7: 32, 13: 40, 30: 60, 34: 48, 65: 80, 70: 80}
+llama_s2heads = {3: 32, 7: 32, 13: 40, 30: 52, 34: 64, 65: 64, 70: 64}
+llama_s2dense = {3: 8192, 7: 11008, 13: 13824, 30: 17920, 34: 22016, 65: 22016,
                  70: 28672}  # should be (2/3)*4*d, but it isn't exaclty that
-llama_s2hidden = {7: 4096, 13: 5120, 30: 6656, 34: 8192, 65: 8192, 70: 8192}
+llama_s2hidden = {3: 3072, 7: 4096, 13: 5120, 30: 6656, 34: 8192, 65: 8192, 70: 8192}
 
 
 def falcon_to_megatron(weights: dict, size: int) -> dict:
@@ -186,7 +186,7 @@ def mistral_to_megatron(
     weights: dict,
     size: int
 ) -> dict:
-    assert size == 7
+    assert (size == 3) or (size == 7)
     def permute(qkv_w):
         # if source == "hf":
         # by default, we pull mistrals weights from huggingface
@@ -208,11 +208,10 @@ def mistral_to_megatron(
         return permute(torch.concat(w_qkv))
 
     # config
-    if size == 7:
-        n_layer = 32
-        hidden = 4096
-        n_heads = 32
-        n_kv_heads = 8
+    n_layer = 32
+    hidden = 4096 if size == 7 else 3072
+    n_heads = 32
+    n_kv_heads = 8 if size == 7 else 32
     n_hidden_per_head = hidden // n_heads
 
     # weights independent of layers
@@ -274,6 +273,7 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
         print("Fetching weights from huggingface")
         if model_path is None:
             model_path = "mistralai/Mistral-7B-v0.1"
+        print(f"model_path: {model_path}")
         model = AutoModelForCausalLM.from_pretrained(model_path,
                                                     trust_remote_code=True,
                                                     cache_dir=cache_dir)
@@ -308,28 +308,28 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
                      "parallel_attn": True, "max_position_embeddings": 2048,
                      "seq_length": 2048})
     elif model_name == "mistral":
-        assert size == 7
+        assert (size == 3) or (size == 7)
         # mistral-7b mostly uses the same args as llama-7b
         # https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json
         args = {
             "num_layers": 32,
-            "hidden_size": 4096,
+            "hidden_size": 4096 if size == 7 else 3072,
             "num_attention_heads": 32,
-            "num_attention_heads_kv": 8,  # except this - GroupedAttention
-            "ffn_hidden_size": 14336,  # except this
+            "num_attention_heads_kv": 8 if size == 7 else 32,  # except this - GroupedAttention
+            "ffn_hidden_size": 14336 if size == 7 else 8192,  # except this
             "parallel_attn": False,
-            "make_vocab_size_divisible_by": 128,
+            "make_vocab_size_divisible_by": 128 if size == 7 else 64,
             "glu_activation": "swiglu",  # == silu
-            "padded_vocab_size": 32000,
+            "padded_vocab_size": 32000 if size == 7 else 32064,
             "use_rms_norm": True,
             "tie_embed_logits": False,
             "tokenizer_type": "SentencePieceTokenizer",
             
-            "max_position_embeddings": 32768,
-            "seq_length": 32768,
+            "max_position_embeddings": 32768 if size == 7 else 4096,
+            "seq_length": 32768 if size == 7 else 4096,
             "layernorm_epsilon": 1e-5,
             "rope_theta": 10000.0,
-            "sliding_window_size": 4096,
+            "sliding_window_size": 4096 if size == 7 else 2047,
         }
     else:  # llama1, llama2, codellama
         args = {"num_layers": llama_s2layer[size],
@@ -337,9 +337,9 @@ def main(model_name: str = "falcon", size: int = 7, out: Optional[Path] = None,
                 "num_attention_heads": llama_s2heads[size],
                 "ffn_hidden_size": llama_s2dense[size],
                 "parallel_attn": False,
-                "make_vocab_size_divisible_by": 128,
+                "make_vocab_size_divisible_by": 64,
                 "glu_activation": "swiglu",
-                "padded_vocab_size": 32000,
+                "padded_vocab_size": 32064,
                 "use_rms_norm": True,
                 "tie_embed_logits": False,
                 "tokenizer_type": "SentencePieceTokenizer"}
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Convert Huggingface llama or falcon weights to "
                                         "megatron-compatible weights")
     parser.add_argument("model", choices={"falcon", "llama", "llama2", "codellama", "mistral"})
-    parser.add_argument("--size", default=7, choices={7, 13, 30, 34, 40, 65, 70}, type=int,
+    parser.add_argument("--size", default=7, choices={3, 7, 13, 30, 34, 40, 65, 70}, type=int,
                         help="The size of the model")
     parser.add_argument("--out", type=Path,
                         help="Directory to store the megatron weights (as checkpoint)")
@@ -434,6 +434,8 @@ if __name__ == "__main__":
                               "of the weights privided Meta"))
     args = parser.parse_args()
 
+    print(args)
+
     # small arg verification
     if args.model == "falcon":
         assert args.size in {7, 40}
@@ -442,8 +444,8 @@ if __name__ == "__main__":
     elif args.model == "codellama":
         assert args.size in {7, 13, 34}
     elif args.model == "mistral":
-        assert args.size in {7}
+        assert args.size in {3, 7}
     else:
-        assert args.size in {7, 13, 70}
+        assert args.size in {3, 7, 13, 70}
 
     main(args.model, args.size, args.out, args.cache_dir, args.model_path)

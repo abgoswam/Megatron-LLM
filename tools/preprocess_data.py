@@ -131,7 +131,7 @@ def get_args():
 
     # some default/dummy values for the tokenizer
     args.rank = 0
-    args.make_vocab_size_divisible_by = 128
+    args.make_vocab_size_divisible_by = 64
     args.tensor_model_parallel_size = 1
 
     return args

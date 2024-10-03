@@ -289,10 +289,11 @@ def write_mistral_model(
 
         # load mistral config from huggingface
         config = MistralConfig.from_pretrained(
-            "mistralai/Mistral-7B-v0.1"
+            # "mistralai/Mistral-7B-v0.1"
+            "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/Phi-3.5-pretrain/"
         )
         # assert configuration matches
-        assert config.hidden_size == n_hidden
+        assert config.hidden_size == n_hidden, f"config.hidden_size: {config.hidden_size} n_hidden: {n_hidden}"
         assert config.intermediate_size == intermediate_size
         assert config.num_attention_heads == n_heads
         assert config.num_hidden_layers == n_layers
@@ -496,8 +497,8 @@ def write_tokenizer(args: Namespace):
                 hf_tokenizer = LlamaTokenizerFast.from_pretrained(hf_repo_name,
                                                             cache_dir=args.cache_dir)
                 print("LlamaTokenizerFast loaded from huggingface")
-                print("vocab_file not set, assuming same tokenizer.model used "
-                      "by llama LlamaTokenizerFast")
+                print(f"vocab_file not set, assuming same tokenizer.model used "
+                      f"by llama LlamaTokenizerFast: {hf_tokenizer.vocab_file}")
                 args.vocab_file = hf_tokenizer.vocab_file
             except OSError:
                 print(f"ERROR: Could not load tokenizer from HF repo '{hf_repo_name}'. "
@@ -510,8 +511,8 @@ def write_tokenizer(args: Namespace):
     # add default args for megatron tokenizer
     args.rank = 0
     args.vocab_extra_ids = 0
-    args.new_tokens = True
-    args.make_vocab_size_divisible_by = 128
+    args.new_tokens = False
+    args.make_vocab_size_divisible_by = 64
     args.tensor_model_parallel_size = 1
     mt_tokenizer = build_tokenizer(args)
 
@@ -606,7 +607,7 @@ def main():
             model_path=args.output_dir,
             input_base_path=args.input_dir,
             num_output_shards=args.num_output_shards,
-            vocab_size=vocab_size,
+            # vocab_size=vocab_size,
         )
     elif args.model == "falcon":
         write_falcon_model(
