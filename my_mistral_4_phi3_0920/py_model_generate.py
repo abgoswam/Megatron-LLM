@@ -18,7 +18,9 @@ import torch
 # model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_reshardckpt10000_save_starcoder1_hf"
 # model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_phi35_orig1_reshardckpt10000_save_redpajama1_hf"
 # model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_reshard7500_save_starcoder_hf"
-model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_reshard8000_save_redpajama_hf"
+# model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts/out_combo2_reshard8000_save_redpajama_hf"
+# model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts_helpful_rooster/out_hf_ckpt/"
+model_name = "/mnt/synthdatastore/agoswami/models_04_postlaborday/my_phi35_pretrain_trials_0920/ckpts_sharing_reptile/out_hf_ckpt/"
 
 
 # Load the tokenizer and model
